@@ -1,0 +1,11 @@
+C:\Users\jorge\source\repos\Cenidor\DAL\bin\Debug\netcoreapp2.2\DAL.deps.json
+C:\Users\jorge\source\repos\Cenidor\DAL\bin\Debug\netcoreapp2.2\DAL.dll
+C:\Users\jorge\source\repos\Cenidor\DAL\bin\Debug\netcoreapp2.2\DAL.pdb
+C:\Users\jorge\source\repos\Cenidor\DAL\obj\Debug\netcoreapp2.2\DAL.csproj.AssemblyReference.cache
+C:\Users\jorge\source\repos\Cenidor\DAL\obj\Debug\netcoreapp2.2\DAL.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\jorge\source\repos\Cenidor\DAL\obj\Debug\netcoreapp2.2\DAL.AssemblyInfoInputs.cache
+C:\Users\jorge\source\repos\Cenidor\DAL\obj\Debug\netcoreapp2.2\DAL.AssemblyInfo.cs
+C:\Users\jorge\source\repos\Cenidor\DAL\obj\Debug\netcoreapp2.2\DAL.csproj.CoreCompileInputs.cache
+C:\Users\jorge\source\repos\Cenidor\DAL\obj\Debug\netcoreapp2.2\DAL.sourcelink.json
+C:\Users\jorge\source\repos\Cenidor\DAL\obj\Debug\netcoreapp2.2\DAL.dll
+C:\Users\jorge\source\repos\Cenidor\DAL\obj\Debug\netcoreapp2.2\DAL.pdb

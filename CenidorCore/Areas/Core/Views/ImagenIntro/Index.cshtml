@@ -1,0 +1,10 @@
+﻿@model IEnumerable<DAL.Models.ImagenIntro>
+@{
+    ViewData["Title"] = "Imagen Intro";
+}
+
+<box color="Info">
+    <load id="tablaImagenIntro" load-url="/Core/ImagenIntro/ObtenerImagenIntro">
+        <box-header title="Listado de Imagen Intro"></box-header>
+    </load>
+</box>
