@@ -516,48 +516,232 @@ namespace CenidorCore.API.Controllers.Billetera
             }
 
         }
+
+
+
+        //[HttpPost("SubirComprobantePagoTarjeta")]
+        //public IActionResult SubirComprobantePagoTarjeta([FromBody] PagoTarjetaDTO pagotarjetaDTO)
+        //{
+        //    try
+        //    {
+        //        var usuario = TraeUsuarioUAT(pagotarjetaDTO.UAT);
+        //        if (usuario == null)
+        //            return new JsonResult(new RespuestaAPI { Status = 500, UAT = pagotarjetaDTO.UAT, Mensaje = $"no existe UAT de Usuario" });
+
+        //        var pagotarjeta = _context.PagoTarjeta.Where(x => x.Id == pagotarjetaDTO.id && x.EstadoPago == EstadoPago.Pendiente).FirstOrDefault();
+
+        //        if (pagotarjeta != null)
+        //        { 
+        //            if(pagotarjetaDTO.ComprobantePago != null) 
+        //            {
+        //                pagotarjeta.ComprobantePago = pagotarjetaDTO.ComprobantePago;
+        //                pagotarjeta.EstadoPago = EstadoPago.Pagado;
+        //                pagotarjeta.FechaComprobante = DateTime.Now;
+        //                _context.Update(pagotarjeta);
+        //                _context.SaveChanges();
+        //                return new JsonResult(new PagoTarjetaDTO { Status = 200, UAT = pagotarjetaDTO.UAT, Mensaje = "Comprobante cargado con exito" });
+        //            }
+        //            else
+        //            {
+        //                return new JsonResult(new PagoTarjetaDTO { Status = 500, UAT = pagotarjetaDTO.UAT, Mensaje = "No hay comprobante cargado" });
+
+        //            }                    
+        //        }
+        //        else
+        //            return new JsonResult(new PagoTarjetaDTO { Status = 500, UAT = pagotarjetaDTO.UAT, Mensaje = "No tiene pagos pendientes para subir archivo" });
+
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Log.Error($"Error en creacion de tarjeta - {e.Message}");
+        //        return new JsonResult(new RespuestaAPI { Status = 500, UAT = pagotarjetaDTO.UAT, Mensaje = $"Error al subir comprobante"});
+        //    }
+
+        //}
+
         [HttpPost("SubirComprobantePagoTarjeta")]
         public IActionResult SubirComprobantePagoTarjeta([FromBody] PagoTarjetaDTO pagotarjetaDTO)
         {
+            //var pagotarjetaPrueba = _context.PagoTarjeta.Where(x => x.Id == 1).FirstOrDefault();
+            //pagotarjetaDTO.ComprobantePago = pagotarjetaPrueba.ComprobantePago;
             try
             {
-                var usuario = TraeUsuarioUAT(pagotarjetaDTO.UAT);
-                if (usuario == null)
-                    return new JsonResult(new RespuestaAPI { Status = 500, UAT = pagotarjetaDTO.UAT, Mensaje = $"no existe UAT de Usuario" });
+                //if (pagotarjetaDTO.ComprobantePago!=null)
+                if (true)
+                {
+                    var usuario = TraeUsuarioUAT(pagotarjetaDTO.UAT);
+                    if (usuario == null)
+                        return new JsonResult(new RespuestaAPI { Status = 500, UAT = pagotarjetaDTO.UAT, Mensaje = $"no existe UAT de Usuario" });
 
-                var pagotarjeta = _context.PagoTarjeta.Where(x => x.Id == pagotarjetaDTO.id && x.EstadoPago == EstadoPago.Pendiente).FirstOrDefault();
+                    ListaMovimientoTarjetaDTO movimientostarjetaDTOS = new ListaMovimientoTarjetaDTO();
 
-                if (pagotarjeta != null)
-                { 
-                    if(pagotarjetaDTO.ComprobantePago != null) 
+                    DatosEstructura empresa = _context.DatosEstructura.FirstOrDefault();
+                    var movtarj = new MovPersona();
+
+                    var tipomov = _context.TipoMovimientoTarjeta.FirstOrDefault();
+                    var nuevosMovimientos = movtarj.ConsultarMovimientosTarjetas2(empresa.UsernameWS, empresa.PasswordWS, usuario.Personas.NroDocumento, Convert.ToInt64(pagotarjetaDTO.NroTarjeta), 100, 0);
+                    var pers = _context.Personas.Where(x => x.NroTarjeta == usuario.Personas.NroTarjeta).FirstOrDefault();
+
+
+                    if (nuevosMovimientos.Detalle.Resultado == "EXITO")
                     {
-                        pagotarjeta.ComprobantePago = pagotarjetaDTO.ComprobantePago;
-                        pagotarjeta.EstadoPago = EstadoPago.Pagado;
-                        pagotarjeta.FechaComprobante = DateTime.Now;
-                        _context.Update(pagotarjeta);
+                        List<MovimientoTarjetaDTO> resultadoNuevos = new List<MovimientoTarjetaDTO>();
+                        if (movimientostarjetaDTOS.tipomovimiento == 0)
+                        {
+                            resultadoNuevos = nuevosMovimientos.Movimientos
+                            .GroupBy(m => new { m.Descripcion, m.Fecha })
+                            .Select(g => new MovimientoTarjetaDTO
+                            {
+                                Monto =  (g.Sum(m => Convert.ToDecimal(m.Monto.Replace(",", ".")) + Convert.ToDecimal(m.Recargo.Replace(",", "."))).ToString().Replace(".", ","))==null ? g.Sum(m => Convert.ToDecimal(m.Monto.Replace(",", "."))).ToString().Replace(".", ",") : (g.Sum(m => Convert.ToDecimal(m.Monto.Replace(",", ".")) + Convert.ToDecimal(m.Recargo.Replace(",", "."))).ToString().Replace(".", ",")),
+                                TipoMovimiento = g.Key.Descripcion,
+                                Fecha = g.Key.Fecha.Date.ToString("dd/MM/yyyy")
+                            })
+                            .ToList();
+                        }
+                        else
+                        {
+                            resultadoNuevos = nuevosMovimientos.Movimientos.Where(x => x.Descripcion == tipomov.Nombre)
+                            .GroupBy(m => new { m.Descripcion, m.Fecha })
+                            .Select(g => new MovimientoTarjetaDTO
+                            {
+                                Monto =  (g.Sum(m => Convert.ToDecimal(m.Monto.Replace(",", ".")) + Convert.ToDecimal(m.Recargo.Replace(",", "."))).ToString().Replace(".", ","))==null ? g.Sum(m => Convert.ToDecimal(m.Monto.Replace(",", "."))).ToString().Replace(".", ",") : (g.Sum(m => Convert.ToDecimal(m.Monto.Replace(",", ".")) + Convert.ToDecimal(m.Recargo.Replace(",", "."))).ToString().Replace(".", ",")),
+                                TipoMovimiento = g.Key.Descripcion,
+                                Fecha = g.Key.Fecha.Date.ToString("dd/MM/yyyy")
+                            })
+                            .ToList();
+                        }
+
+                        List<ListDetalleCuotaDTO> listDetalle = new List<ListDetalleCuotaDTO>();
+
+                        foreach (var item in nuevosMovimientos.DetallesSolicitud)
+                        {
+                            foreach (var itemMovimiento in item.DetallesCuota)
+                            {
+                                if (listDetalle.Any(x => x.Fecha == itemMovimiento.Fecha))
+                                {
+                                    var detalle = listDetalle.Where(x => x.Fecha == itemMovimiento.Fecha).First();
+                                    detalle.Monto = (Convert.ToDecimal(detalle.Monto) + Convert.ToDecimal(itemMovimiento.Monto)).ToString();
+                                }
+                                else
+                                {
+                                    listDetalle.Add(new ListDetalleCuotaDTO()
+                                    {
+                                        Fecha = itemMovimiento.Fecha,
+                                        Monto = itemMovimiento.Monto
+                                    });
+                                }
+                            }
+                        }
+
+                        string deudaTotal = "0.0";
+                        string saldoVencidoAcumulado = "0.0";
+                        string sumaProximoVencimientoAcumulado = "0.0";
+                        string sumaTotalAcumulado = "0.0";
+                        bool cuotaVencida = false;
+                        string fechaSiguienteCuota = "";
+                        DateTime? fechaProximoPago = null;
+                        foreach (var item in listDetalle.OrderBy(x => x.Fecha))
+                        {
+                            if (VerificarVencimiento(item.Fecha))
+                            {
+                                SetearCultureInfoUS();
+                                var aux1 = Convert.ToDecimal(item.Monto);
+                                var aux2 = Convert.ToDecimal(saldoVencidoAcumulado);
+                                saldoVencidoAcumulado = (aux1+aux2).ToString();
+                                cuotaVencida = true;
+                            }
+                            else
+                            {
+
+                                if (fechaSiguienteCuota=="")
+                                    fechaSiguienteCuota = item.Fecha;
+
+                                if ((ConvertirFecha(item.Fecha).Month==(ConvertirFecha(fechaSiguienteCuota).Month)) && (ConvertirFecha(item.Fecha).Year==ConvertirFecha(fechaSiguienteCuota).Year))
+                                {
+                                    if (fechaProximoPago==null)
+                                        fechaProximoPago=ConvertirFecha(item.Fecha);
+
+                                    SetearCultureInfoUS();
+                                    var monto2 = Convert.ToDecimal(item.Monto);
+                                    var monto1 = Convert.ToDecimal(sumaProximoVencimientoAcumulado);
+                                    sumaProximoVencimientoAcumulado = (monto1+monto2).ToString();
+                                }
+                                SetearCultureInfoUS();
+                                var monto3 = Convert.ToDecimal(item.Monto);
+                                var monto4 = Convert.ToDecimal(deudaTotal);
+                                deudaTotal = (monto3+monto4).ToString();
+                            }
+
+                        }
+                        SetearCultureInfoUS();
+                        sumaProximoVencimientoAcumulado = (Convert.ToDecimal(sumaProximoVencimientoAcumulado)+Convert.ToDecimal(saldoVencidoAcumulado)).ToString();
+                        sumaTotalAcumulado = (Convert.ToDecimal(deudaTotal)+Convert.ToDecimal(saldoVencidoAcumulado)).ToString();
+
+                        bool ContieneLeyenda = false;
+                        string Leyenda = "";
+                        var LeyendaTexto = _context.LeyendaTipoMovimiento.FirstOrDefault();
+
+                        if (resultadoNuevos.Where(x => x.TipoMovimiento == LeyendaTexto.NombreMovimiento).Count()>0 && LeyendaTexto.Activo==true)
+                        {
+                            ContieneLeyenda = true;
+                            Leyenda = LeyendaTexto.TextoLeyenda;
+                        }
+
+                        List<MovimientoTarjetaDTO> MovimientosTarjeta = nuevosMovimientos.Movimientos
+                            .Select(mov => new MovimientoTarjetaDTO
+                            {
+                                TipoMovimiento = mov.Descripcion,
+                                Monto = mov.Monto,
+                                Fecha = mov.Fecha.ToString("dd/MM/yyyy")
+                            })
+                            .ToList();
+
+                        int cantidadDeMovimientos = MovimientosTarjeta.Count();
+                        if (cantidadDeMovimientos>movimientostarjetaDTOS.CantMovimientos)
+                        {
+                            cantidadDeMovimientos = Convert.ToInt32(movimientostarjetaDTOS.CantMovimientos);
+                        }
+
+                        var pagoTarjeta = new PagoTarjeta
+                        {
+                            NroTarjeta = pagotarjetaDTO.NroTarjeta,
+                            //MontoAdeudado = Convert.ToDecimal(sumaTotalAcumulado.Replace(".", ",")),
+                            MontoAdeudado = Convert.ToDecimal(sumaProximoVencimientoAcumulado),
+                            FechaVencimiento = fechaProximoPago==null ? DateTime.MinValue : (DateTime)fechaProximoPago,
+                            Persona = pers,
+                            EstadoPago = EstadoPago.Pagado,
+                            FechaComprobante = DateTime.Now,
+                            FechaPagoProximaCuota = fechaProximoPago==null ? DateTime.MinValue : (DateTime)fechaProximoPago,
+                            ComprobantePago = pagotarjetaDTO.ComprobantePago
+                        };
+                        _context.PagoTarjeta.Add(pagoTarjeta);
                         _context.SaveChanges();
                         return new JsonResult(new PagoTarjetaDTO { Status = 200, UAT = pagotarjetaDTO.UAT, Mensaje = "Comprobante cargado con exito" });
                     }
                     else
                     {
-                        return new JsonResult(new PagoTarjetaDTO { Status = 500, UAT = pagotarjetaDTO.UAT, Mensaje = "No hay comprobante cargado" });
-
-                    }                    
+                        return new JsonResult(new PagoTarjetaDTO { Status = 500, UAT = pagotarjetaDTO.UAT, Mensaje = "Error al traer el Saldo Pendiente." });
+                    }
                 }
                 else
-                    return new JsonResult(new PagoTarjetaDTO { Status = 500, UAT = pagotarjetaDTO.UAT, Mensaje = "No tiene pagos pendientes para subir archivo" });
+                {
+                    return new JsonResult(new PagoTarjetaDTO { Status = 500, UAT = pagotarjetaDTO.UAT, Mensaje = "No hay comprobante cargado" });
+                }
+
+                //else
+                //    return new JsonResult(new PagoTarjetaDTO { Status = 500, UAT = pagotarjetaDTO.UAT, Mensaje = "No tiene pagos pendientes para subir archivo" });
 
             }
             catch (Exception e)
             {
                 Log.Error($"Error en creacion de tarjeta - {e.Message}");
-                return new JsonResult(new RespuestaAPI { Status = 500, UAT = pagotarjetaDTO.UAT, Mensaje = $"Error al subir comprobante"});
+                return new JsonResult(new RespuestaAPI { Status = 500, UAT = pagotarjetaDTO.UAT, Mensaje = $"Error al subir comprobante" });
             }
 
         }
 
 
-		[HttpPost("ObtenerComprobantes")]
+        [HttpPost("ObtenerComprobantes")]
 		public IActionResult ObtenerComprobantes([FromBody] ComprobantesDTO pagotarjetaDTO)
 		{
 			try

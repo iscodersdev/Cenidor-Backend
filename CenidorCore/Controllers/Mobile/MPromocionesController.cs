@@ -67,8 +67,13 @@ namespace CenidorCore.Controllers
             if (promociones.Count > 0 || promocionesVencimiento.Count > 0)
             {
                 uat.Promociones = promociones.Concat(promocionesVencimiento).OrderBy(x => x.Orden).ToList();
+                uat.Status = 200;
             }
-            uat.Status = 200;
+            else
+            {
+                uat.Status = 404;
+            }
+
             return uat;
         }
 
@@ -107,8 +112,12 @@ namespace CenidorCore.Controllers
                 if (promociones.Count > 0 || promocionesVencimiento.Count > 0)
                 {
                     uat.Promociones = promociones.Concat(promocionesVencimiento).OrderBy(x => x.Orden).ToList();
+                    uat.Status = 200;
                 }
-                uat.Status = 200;
+                else
+                {
+                    uat.Status = 404;
+                }
                 return uat;
             }
             catch(Exception e){

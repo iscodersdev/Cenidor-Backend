@@ -70,11 +70,11 @@ namespace CenidorCore.Services
         {
             // Instancia el cliente SOAP para obtener los datos de la tarjeta
             var cliente = new TarjetaObtenerDatosClient();
-            
-            
+
+
 
             // Realiza la llamada al servicio SOAP para obtener los datos de la tarjeta
-            string soapResponse = cliente.ObtenerDatos(usuario, clave,Convert.ToInt32(documento), numeroTarjeta, cantidadMovimientos);
+            string soapResponse = cliente.ObtenerDatos(usuario, clave, Convert.ToInt32(documento), numeroTarjeta, cantidadMovimientos);
 
             // Procesa la respuesta XML
             XmlDocument xmlDoc = new XmlDocument();
@@ -97,15 +97,15 @@ namespace CenidorCore.Services
                     datos.MontoAdeudado = item.ChildNodes[4]?.InnerText;
                     datos.ProximaFechaPago = item.ChildNodes[5]?.InnerText;
                     datos.TotalProximaCuota = item.ChildNodes[6]?.InnerText;
-                    datos.MontoDisponible = item.ChildNodes[10]?.InnerText.Replace(".",",");
+                    datos.MontoDisponible = item.ChildNodes[10]?.InnerText.Replace(".", ",");
                     datos.tipomovimiento = tipomovimientotarjeta;
-                    string fechaproximapago ;
-                    if (DateTime.Now.Day > 15 ) 
+                    string fechaproximapago;
+                    if (DateTime.Now.Day > 15)
                     {
-                        
+
                         fechaproximapago = DateTime.Now.Year + "-" + (DateTime.Now.Month + 1)  + "-15";
-                    } 
-                    else 
+                    }
+                    else
                     {
                         fechaproximapago = DateTime.Now.Year + "-" + DateTime.Now.Month + "-15";
 
@@ -118,7 +118,7 @@ namespace CenidorCore.Services
                     datos.DetalleMovimientosTarjeta = new List<DetalleMovimientoTarjetaDTO>();
                     for (int i = 0; i < item.ChildNodes[8].ChildNodes.Count; i++)
                     {
-                        if (item.ChildNodes[8].ChildNodes[i].ChildNodes[0] != null )
+                        if (item.ChildNodes[8].ChildNodes[i].ChildNodes[0] != null)
                         {
                             MovimientoTarjetaDTO movimimientotarjeta = new MovimientoTarjetaDTO();
                             movimimientotarjeta.Fecha = item.ChildNodes[8].ChildNodes[i].ChildNodes[0]?.InnerText;
@@ -148,42 +148,63 @@ namespace CenidorCore.Services
                     }
 
                 }
-            }           
+            }
             return (datos);
-        
+
         }
 
         public CombinedData ConsultarMovimientosTarjetas2(string usuario, string clave, String documento, long numeroTarjeta, long cantidadMovimientos, int tipomovimientotarjeta)
-		{
+        {
 
-			// Instancia el cliente SOAP para obtener los datos de la tarjeta
-			var cliente = new TarjetaObtenerDatosClient();
-
-
-
-			// Realiza la llamada al servicio SOAP para obtener los datos de la tarjeta
-			string soapResponse = cliente.ObtenerDatos(usuario, clave, Convert.ToInt32(documento), numeroTarjeta, cantidadMovimientos);
-
-			// Procesa la respuesta XML
-			XmlDocument xmlDoc = new XmlDocument();
-			xmlDoc.LoadXml(soapResponse);
-
-			XmlNodeList DatosNodes = xmlDoc.GetElementsByTagName("TarjetaObtenerDatosResult");
-			ListaMovimientoTarjetaDTO datos = new ListaMovimientoTarjetaDTO();
-
-			// Aquí procesas y extraes los datos que necesitas del XML
-
-			XDocument doc = XDocument.Parse(soapResponse);
-			XNamespace ns = "http://tempuri.org/";
+            // Instancia el cliente SOAP para obtener los datos de la tarjeta
+            var cliente = new TarjetaObtenerDatosClient();
 
 
-			Detail detalles = new Detail();
-	        var resultadosConsulta = doc.Descendants(ns + "resultadoServicioWeb")
-							    .Select(m => new Detail()
-							    {
-									Resultado = m.Element(ns + "resultado").Value,
-									Mensaje = m.Element(ns + "mensaje").Value,
-								}).FirstOrDefault();
+            //documento = "30463400";
+            //numeroTarjeta = 10012018003;
+
+            // Realiza la llamada al servicio SOAP para obtener los datos de la tarjeta
+            string soapResponse = cliente.ObtenerDatos(usuario, clave, Convert.ToInt32(documento), numeroTarjeta, cantidadMovimientos);
+
+            // Procesa la respuesta XML
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(soapResponse);
+
+            XmlNodeList DatosNodes = xmlDoc.GetElementsByTagName("TarjetaObtenerDatosResult");
+            ListaMovimientoTarjetaDTO datos = new ListaMovimientoTarjetaDTO();
+
+            // Aquí procesas y extraes los datos que necesitas del XML
+
+            XDocument doc = XDocument.Parse(soapResponse);
+            XNamespace ns = "http://tempuri.org/";
+
+
+            //------------------------------------//
+            // --- Para guardar el archivo de forma segura ---
+
+            // 1. Obtiene la ruta a la carpeta del Escritorio del usuario actual.
+            string rutaEscritorio = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+
+            // 2. Define el nombre del archivo.
+            //string nombreArchivo = "respuesta_tarjeta.xml";
+
+            // 3. Combina la ruta del escritorio y el nombre del archivo. 
+            //    Path.Combine se asegura de que la ruta sea correcta.
+            //string rutaCompleta = Path.Combine(rutaEscritorio, nombreArchivo);
+
+            // 4. Escribe el contenido en el archivo en el Escritorio.
+            // File.WriteAllText(rutaCompleta, soapResponse);
+            //------------------------------------//
+
+
+
+            Detail detalles = new Detail();
+            var resultadosConsulta = doc.Descendants(ns + "resultadoServicioWeb")
+                                .Select(m => new Detail()
+                                {
+                                    Resultado = m.Element(ns + "resultado").Value,
+                                    Mensaje = m.Element(ns + "mensaje").Value,
+                                }).FirstOrDefault();
 
             CombinedData combinedResults = new CombinedData()
             {
@@ -192,22 +213,22 @@ namespace CenidorCore.Services
                     Resultado = "ERROR",
                     Mensaje = "Error al traer los movimientos."
                 }
-			};
+            };
 
-			if (resultadosConsulta.Resultado=="EXITO")
+            if (resultadosConsulta.Resultado=="EXITO")
             {
-				detalles = doc.Descendants(ns + "TarjetaObtenerDatosResult")
-											   .Select(m => new Detail()
-											   {
-												   Documento = m.Element(ns + "documento").Value,
-												   Nombre = m.Element(ns + "nombre").Value,
-												   Direccion = m.Element(ns + "direccion").Value,
-												   MontoAdeudado = m.Element(ns + "montoAdeudado").Value,
-												   MontoDisponible = m.Element(ns + "MontoDisponible").Value,
-												   ProximaFechaPago = m.Element(ns + "proximaFechaPago").Value != "0:00:00" ? DateTime.ParseExact(m.Element(ns + "proximaFechaPago").Value, "dd/MM/yyyy", null) : DateTime.Parse("11/11/1111"),
-												   TotalProximaCuota = m.Element(ns + "totalProximaCuota").Value,
-												   FechaPagoProximaCuota = m.Element(ns + "fechaPagoProximaCuota").Value != "0:00:00" ? DateTime.ParseExact(m.Element(ns + "fechaPagoProximaCuota").Value, "dd/MM/yyyy", null) : DateTime.Parse("11/11/1111"),
-											   }).FirstOrDefault();
+                detalles = doc.Descendants(ns + "TarjetaObtenerDatosResult")
+                                               .Select(m => new Detail()
+                                               {
+                                                   Documento = m.Element(ns + "documento").Value,
+                                                   Nombre = m.Element(ns + "nombre").Value,
+                                                   Direccion = m.Element(ns + "direccion").Value,
+                                                   MontoAdeudado = m.Element(ns + "montoAdeudado").Value,
+                                                   MontoDisponible = m.Element(ns + "MontoDisponible").Value,
+                                                   ProximaFechaPago = m.Element(ns + "proximaFechaPago").Value != "0:00:00" ? DateTime.ParseExact(m.Element(ns + "proximaFechaPago").Value, "dd/MM/yyyy", null) : DateTime.Parse("11/11/1111"),
+                                                   TotalProximaCuota = m.Element(ns + "totalProximaCuota").Value,
+                                                   FechaPagoProximaCuota = m.Element(ns + "fechaPagoProximaCuota").Value != "0:00:00" ? DateTime.ParseExact(m.Element(ns + "fechaPagoProximaCuota").Value, "dd/MM/yyyy", null) : DateTime.Parse("11/11/1111"),
+                                               }).FirstOrDefault();
 
                 detalles.Resultado = resultadosConsulta.Resultado;
 
@@ -215,39 +236,40 @@ namespace CenidorCore.Services
                 var movements = doc.Descendants(ns + "Movimiento")
                      .Where(m => m.Attribute(xsi + "nil") == null || m.Attribute(xsi + "nil").Value != "true")
                      .Select(m => new MovementDetail
-                      {
-                          Fecha = DateTime.ParseExact(m.Element(ns + "fecha")?.Value, "dd/MM/yyyy", null),
-                          Descripcion = m.Element(ns + "descripcion")?.Value,
-                          Monto = m.Element(ns + "monto")?.Value,
-                          Recargo = m.Element(ns + "recargo")?.Value
-                      });
+                     {
+                         Fecha = DateTime.ParseExact(m.Element(ns + "fecha")?.Value, "dd/MM/yyyy", null),
+                         Descripcion = m.Element(ns + "descripcion")?.Value,
+                         Monto = m.Element(ns + "monto")?.Value,
+                         Recargo = m.Element(ns + "recargo")?.Value
+                     });
 
 
                 var detallesSolicitud = doc.Descendants(ns + "DetalleSolicitud")
-									   .Select(d => new SolicitudDetail()
-									   {
-										   NumeroSolicitud = d.Element(ns + "numeroSolicitud").Value,
-										   NombreComercio = d.Element(ns + "nombreComercio").Value,
-										   DetallesCuota = d.Descendants(ns + "DetalleCuota").Select(e => new DetalleCuota()
-										   {
-											   Fecha = DateTime.ParseExact(e.Element(ns + "fechaCuota").Value, "yyyy-MM-dd'T'HH:mm:ss", CultureInfo.InvariantCulture).ToString("dd/MM/yyyy"),
-											   NumeroCuota = e.Element(ns + "numeroCuota").Value,
-											   Monto = e.Element(ns + "montoCuota").Value
-										   }).ToList()
-									   });           
+                                       .Select(d => new SolicitudDetail()
+                                       {
+                                           NumeroSolicitud = d.Element(ns + "numeroSolicitud").Value,
+                                           NombreComercio = d.Element(ns + "nombreComercio").Value,
+                                           DetallesCuota = d.Descendants(ns + "DetalleCuota").Select(e => new DetalleCuota()
+                                           {
+                                               Fecha = DateTime.ParseExact(e.Element(ns + "fechaCuota").Value, "yyyy-MM-dd'T'HH:mm:ss", CultureInfo.InvariantCulture).ToString("dd/MM/yyyy"),
+                                               NumeroCuota = e.Element(ns + "numeroCuota").Value,
+                                               Monto = e.Element(ns + "montoCuota").Value
+                                           }).ToList()
+                                       });
 
-			    combinedResults = new CombinedData()
-			    {
-				    Detalle = detalles,
-				    Movimientos = movements.ToList(),
-				    DetallesSolicitud = detallesSolicitud.ToList(),
-			    };
-			}			
+                combinedResults = new CombinedData()
+                {
+                    Detalle = detalles,
+                    Movimientos = movements.ToList(),
+                    DetallesSolicitud = detallesSolicitud.ToList(),
+                };
+            }
             return combinedResults;
-		}
-	}
+        }
+    }
 
-	public class Detail
+
+    public class Detail
 	{
 		public string Resultado { get; set; }
 		public string Mensaje { get; set; }

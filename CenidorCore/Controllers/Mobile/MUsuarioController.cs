@@ -439,14 +439,27 @@ namespace CenidorCore.Controllers
                 uat.Mensaje = "Passwords deben Coincidir";
                 return uat;
             }
+            var cliente = Uat.Cliente;
+
+            if(uat.Domicilio!=null)
+                cliente.Domicilio = uat.Domicilio;
+
+            if (uat.Celular!=null)
+                cliente.Celular = uat.Celular; 
+
+            if (uat.FechaNacimiento!=null)
+                cliente.Persona.FechaNacimiento = Convert.ToDateTime(uat.FechaNacimiento);
+
+            if (uat.Apellido!=null)
+                cliente.Persona.Apellido =uat.Apellido;
+
+            if (uat.Nombres!=null)
+                cliente.Persona.Nombres = uat.Nombres;
+
+            _context.Update(cliente);
+            _context.SaveChanges();
             uat.Status = 200;
             uat.Mensaje = "Datos Actualizados Correctamente!!!";
-            var cliente = Uat.Cliente;
-            cliente.Domicilio = uat.Domicilio;
-            cliente.Celular = uat.Celular;
-            cliente.Persona.FechaNacimiento = Convert.ToDateTime(uat.FechaNacimiento);
-            _context.Clientes.Update(cliente);
-            _context.SaveChanges();
             return uat;
         }
         [HttpPost]
