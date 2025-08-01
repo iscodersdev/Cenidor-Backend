@@ -171,6 +171,8 @@ namespace DAL.Models
         public string Mail { get; set; }
         public string Celular { get; set; }
         public string Domicilio { get; set; }
+        public string Apellido { get; set; }
+        public string Nombres { get; set; }
         public DateTime? FechaNacimiento { get; set; }
         public string Password1 { get; set; }
         public string Password2 { get; set; }
