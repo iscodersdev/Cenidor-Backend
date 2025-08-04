@@ -57,7 +57,7 @@ namespace CenidorCore.Controllers
             //var promociones = _context.Promociones.Where(x => x.Empresa.Id == Uat.Cliente.Empresa.Id && (uat.UltimaId == 0 || x.Id < uat.UltimaId) && x.Foto != null).OrderBy(x => x.Orden)
             //    .Select(x => new MPromociones { PromocionFija= x.PromocionFija, Fecha = x.Fecha, Texto = x.Texto, Id = x.Id, Titulo = x.Titulo, Subtitulo=x.Subtitulo, Link = x.Link, QR = x.QR, Imagen = Convert.FromBase64String(x.Foto) }).ToList();
 
-            var promociones = _context.Promociones.Where(x => x.Empresa.Id == Uat.Cliente.Empresa.Id && (uat.UltimaId == 0 || x.Id < uat.UltimaId) && x.Foto != null && x.Vencimiento==false).OrderBy(x => x.Orden)
+            var promociones = _context.Promociones.Where(x => (uat.UltimaId == 0 || x.Id < uat.UltimaId) && x.Foto != null && x.Vencimiento==false).OrderBy(x => x.Orden)
                 .Select(x => new MPromociones { PromocionFija= x.PromocionFija, Fecha = x.Fecha, Texto = x.Texto, Id = x.Id, Titulo = x.Titulo, Subtitulo=x.Subtitulo, Link = x.Link, QR = x.QR, Imagen = Convert.FromBase64String(x.Foto), Orden = x.Orden }).ToList();
 
 
@@ -71,7 +71,7 @@ namespace CenidorCore.Controllers
             }
             else
             {
-                uat.Status = 404;
+                uat.Status = 204;
             }
 
             return uat;

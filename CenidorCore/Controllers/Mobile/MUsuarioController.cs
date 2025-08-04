@@ -456,7 +456,8 @@ namespace CenidorCore.Controllers
             if (uat.Nombres!=null)
                 cliente.Persona.Nombres = uat.Nombres;
 
-            _context.Update(cliente);
+            _context.Personas.Update(cliente.Persona);
+            _context.Clientes.Update(cliente);
             _context.SaveChanges();
             uat.Status = 200;
             uat.Mensaje = "Datos Actualizados Correctamente!!!";
